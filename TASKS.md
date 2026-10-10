@@ -5,7 +5,7 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 
 ## Slice 1 - Open and view (branch `slice-1`)
 - [x] Confirm C++ workload + CMake in VS 18 (VC 14.51.36231, CMake found)
-- [ ] 1a markdown: vendor cmark-gfm, build `.lib`, binding, `render`, tests first
+- [x] 1a markdown: vendor cmark-gfm, build `.lib`, binding, `render`, tests first
 - [ ] 1b webview: confirm `ICoreWebView2_3` host mapping, check Ctrl+F, COM binding, smoke
 - [ ] 1c assets: template, CSS light/dark, CSP, highlight.js, link script (agree C2 contract first)
 - [ ] 1d shell: window, menu, open dialog, errors, integrate (owns C1)
