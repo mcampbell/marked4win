@@ -23,9 +23,9 @@ second</p>
 test_parse_blocks :: proc(t: ^testing.T) {
 	blocks := parse_blocks(SAMPLE)
 	defer delete(blocks)
-	testing.expect_value(t, len(blocks), 7)
+	testing.expect_value(t, len(blocks), 8) // h1, table, tr, th, tr, td, p, p
 	testing.expect_value(t, blocks[0], Block{1, 1, "1:1-1:3"})
-	testing.expect_value(t, blocks[5], Block{8, 9, "8:1-9:11"})
+	testing.expect_value(t, blocks[6], Block{8, 9, "8:1-9:11"})
 }
 
 @(test)
@@ -99,7 +99,7 @@ test_e2e_table_cell_edit_flashes_row :: proc(t: ^testing.T) {
 
 @(test)
 test_e2e_inline_edit_flashes_paragraph :: proc(t: ^testing.T) {
-	expect_keys(t, keys_for_edit("para with **bold** text\n", "para with **BOLD** text\n"), {"1:1-1:24"})
+	expect_keys(t, keys_for_edit("para with **bold** text\n", "para with **BOLD** text\n"), {"1:1-1:23"})
 }
 
 @(test)

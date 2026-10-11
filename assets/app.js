@@ -1,5 +1,5 @@
 // Page side of the host contract (see src/protocol.odin).
-// Host -> page: "html:<html>" | "status:<text>". Page -> host: "ready" | "link:<href>".
+// Host -> page: "html:" | "newdoc:" | "changed:<keys>" | "status:<text>". Page -> host: "ready" | "link:<href>".
 (() => {
   const content = document.getElementById('content');
   const status = document.getElementById('status');
@@ -28,6 +28,23 @@
     window.scrollTo(0, keepScroll ? y : 0);
   };
 
+  // Scroll to the first changed block, mark all of them for 2 s (keys = data-sourcepos values).
+  let flashTimer;
+  const flashChanged = (keys) => {
+    const els = keys
+      .filter((k) => /^\d+:\d+-\d+:\d+$/.test(k))
+      .flatMap((k) => [...content.querySelectorAll(`[data-sourcepos="${k}"]`)]);
+    if (!els.length) return;
+    els.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+    els.forEach((el) => el.classList.add('flash'));
+    els[0].scrollIntoView({ block: 'center' });
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(
+      () => content.querySelectorAll('.flash').forEach((el) => el.classList.remove('flash')),
+      2000,
+    );
+  };
+
   const setStatus = (text) => {
     status.textContent = text;
     status.hidden = text === '';
@@ -38,6 +55,7 @@
     if (typeof msg !== 'string') return;
     if (msg.startsWith('html:')) setHtml(msg.slice('html:'.length), true);
     else if (msg.startsWith('newdoc:')) setHtml(msg.slice('newdoc:'.length), false);
+    else if (msg.startsWith('changed:')) flashChanged(msg.slice('changed:'.length).split('|'));
     else if (msg.startsWith('status:')) setStatus(msg.slice('status:'.length));
   });
 

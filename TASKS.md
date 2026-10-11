@@ -17,11 +17,11 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 - [x] code-reviewer loop (inline, 1 iteration, clean)
 
 ## Slice 3 - Scroll to change and flash (branch `slice-3`)
-- [ ] Test `data-sourcepos` on table rows, inline-only edits
-- [ ] linediff + tests
-- [ ] blockmap + tests
-- [ ] scroll + flash script, wiring (replaces R1)
-- [ ] code-reviewer loop
+- [x] Test `data-sourcepos` on table rows, inline-only edits
+- [x] linediff + tests
+- [x] blockmap + tests
+- [x] scroll + flash script, wiring (replaces R1)
+- [x] code-reviewer loop (inline, 1 iteration, clean)
 
 ## Found
 - Built-in Ctrl+F works (WebView2 154.0.4258.62): R2 not needed.
@@ -37,3 +37,6 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 - Accepted risks: CSP allows https: images and inline styles (remote image / CSS exfil); File > Open dialog and dark theme untested.
 - Slice 2: watcher polls one file every 300 ms (pure state machine) instead of ReadDirectoryChangesW: no thread, debounce by design (YAGNI). Smoke OK: edit keeps scroll, delete shows banner, restore clears.
 - Status banner is position:fixed so it does not shift scroll.
+- Slice 3: sourcepos on tr/td/th, paragraphs (inline edits), lists end at 'line:0'. Block key = the data-sourcepos string (no ordinals). Tie rule: smallest block, outer wins, so a cell edit flashes the row. Deleted-only text points at the next line. Smoke OK: table edit scrolls+flashes tr, flash clears at 2 s.
+- Flash is a class toggled for 2 s, not a CSS animation (DESIGN.md says no animation).
+- Not yet reviewed with a separate reviewer agent: all three review passes were inline.

@@ -20,6 +20,7 @@ Shell :: struct {
 	path:  string, // open document ("" = none)
 
 	mapped_dir: string, // folder currently served as doc.local
+	src:        string, // text the page shows, for the line diff
 	watch:      Watch,
 	new_doc:    bool, // next post is a different file: page scrolls to top
 }
@@ -153,7 +154,7 @@ show_file :: proc(path: string, new_doc := false) {
 	shell.path = path
 	if !shell.ready do return // on_page_message("ready") calls us again
 
-	html, err := load_document(path, context.temp_allocator)
+	src, html, err := load_document(path, context.temp_allocator)
 	if err != "" {
 		webview_post(&shell.wv, status_message(err, context.temp_allocator))
 		return
@@ -168,9 +169,20 @@ show_file :: proc(path: string, new_doc := false) {
 		return
 	}
 	webview_post(&shell.wv, html_message(html, shell.new_doc, context.temp_allocator))
+	if !shell.new_doc do flash_changes(src, html)
 	shell.new_doc = false
+	delete(shell.src)
+	shell.src = strings.clone(src)
 	webview_post(&shell.wv, status_message("", context.temp_allocator))
 	win.SetWindowTextW(shell.hwnd, win.utf8_to_wstring(fmt.tprintf("%s - %s", filepath.base(path), APP_NAME)))
+}
+
+// flash_changes tells the page which blocks differ from the text it showed before.
+@(private = "file")
+flash_changes :: proc(src, html: string) {
+	ranges := changed_ranges(shell.src, src, allocator = context.temp_allocator)
+	keys := changed_keys(parse_blocks(html, context.temp_allocator), ranges, context.temp_allocator)
+	if len(keys) > 0 do webview_post(&shell.wv, changed_message(keys, context.temp_allocator))
 }
 
 @(private = "file")

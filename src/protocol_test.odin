@@ -64,6 +64,10 @@ test_host_messages :: proc(t: ^testing.T) {
 	defer delete(s)
 	testing.expect_value(t, s, "status:File missing - waiting")
 
+	k := changed_message({"1:1-1:3", "8:1-9:11"})
+	defer delete(k)
+	testing.expect_value(t, k, "changed:1:1-1:3|8:1-9:11")
+
 	c := status_message("")
 	defer delete(c)
 	testing.expect_value(t, c, "status:")

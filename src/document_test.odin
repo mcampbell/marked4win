@@ -18,7 +18,8 @@ test_load_document_ok :: proc(t: ^testing.T) {
 	path := write_temp("m4w_ok.md", transmute([]byte)string("# Title\n"))
 	defer os.remove(path)
 
-	html, err := load_document(path)
+	src, html, err := load_document(path)
+	defer delete(src)
 	defer delete(html)
 	testing.expect_value(t, err, "")
 	testing.expect(t, strings.contains(html, "<h1"), html)
@@ -26,7 +27,8 @@ test_load_document_ok :: proc(t: ^testing.T) {
 
 @(test)
 test_load_document_missing :: proc(t: ^testing.T) {
-	html, err := load_document("Z:\\no\\such\\file.md")
+	src, html, err := load_document("Z:\\no\\such\\file.md")
+	defer delete(src)
 	defer delete(html)
 	defer delete(err)
 	testing.expect_value(t, html, "")
@@ -38,7 +40,8 @@ test_load_document_invalid_utf8 :: proc(t: ^testing.T) {
 	path := write_temp("m4w_bad.md", []byte{'a', 0xff, 'b'})
 	defer os.remove(path)
 
-	html, err := load_document(path)
+	src, html, err := load_document(path)
+	defer delete(src)
 	defer delete(html)
 	defer delete(err)
 	testing.expect_value(t, html, "")

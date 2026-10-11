@@ -8,6 +8,7 @@ import "core:strings"
 // Scripts: only app.local serves scripts (CSP). Document scripts never run.
 // Page -> host: "ready" | "link:<raw href>"
 // Host -> page: "html:<html>" (keep scroll) | "newdoc:<html>" (scroll to top)
+//               | "changed:<key>|<key>..." (scroll to first block, flash all; key = data-sourcepos value)
 //               | "status:<text>" (empty text clears status)
 
 APP_HOST     :: "app.local"
@@ -45,6 +46,13 @@ parse_page_message :: proc(msg: string) -> (kind: Page_Msg, arg: string) {
 // new_doc: a different file was opened (page scrolls to top). Otherwise the page keeps its scroll offset.
 html_message :: proc(html: string, new_doc := false, allocator := context.allocator) -> string {
 	return strings.concatenate({"newdoc:" if new_doc else "html:", html}, allocator)
+}
+
+// changed_message lists the data-sourcepos keys of changed blocks (document order).
+// The page scrolls to the first and flashes all of them for 2 s.
+changed_message :: proc(keys: []string, allocator := context.allocator) -> string {
+	joined := strings.join(keys, "|", context.temp_allocator)
+	return strings.concatenate({"changed:", joined}, allocator)
 }
 
 status_message :: proc(text: string, allocator := context.allocator) -> string {
