@@ -56,6 +56,10 @@ test_host_messages :: proc(t: ^testing.T) {
 	defer delete(h)
 	testing.expect_value(t, h, "html:<p>x</p>")
 
+	n := html_message("<p>x</p>", new_doc = true)
+	defer delete(n)
+	testing.expect_value(t, n, "newdoc:<p>x</p>")
+
 	s := status_message("File missing - waiting")
 	defer delete(s)
 	testing.expect_value(t, s, "status:File missing - waiting")

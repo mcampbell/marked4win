@@ -20,10 +20,12 @@
     });
   };
 
-  const setHtml = (html) => {
+  const setHtml = (html, keepScroll) => {
+    const y = window.scrollY;
     content.innerHTML = html;
     addHeadingIds();
     content.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
+    window.scrollTo(0, keepScroll ? y : 0);
   };
 
   const setStatus = (text) => {
@@ -34,7 +36,8 @@
   window.chrome.webview.addEventListener('message', (e) => {
     const msg = e.data;
     if (typeof msg !== 'string') return;
-    if (msg.startsWith('html:')) setHtml(msg.slice('html:'.length));
+    if (msg.startsWith('html:')) setHtml(msg.slice('html:'.length), true);
+    else if (msg.startsWith('newdoc:')) setHtml(msg.slice('newdoc:'.length), false);
     else if (msg.startsWith('status:')) setStatus(msg.slice('status:'.length));
   });
 

@@ -20,7 +20,12 @@ Shell :: struct {
 	path:  string, // open document ("" = none)
 
 	mapped_dir: string, // folder currently served as doc.local
+	watch:      Watch,
+	new_doc:    bool, // next post is a different file: page scrolls to top
 }
+
+TIMER_WATCH :: 1
+MSG_MISSING :: "File missing - waiting"
 
 @(private = "file")
 shell: Shell
@@ -59,13 +64,15 @@ shell_run :: proc() -> bool {
 	}
 	if len(os.args) > 1 { // opened once the page is ready
 		// host mapping needs an absolute folder
-		shell.path, _ = filepath.abs(os.args[1])
+		path, _ := filepath.abs(os.args[1])
+		show_file(path, new_doc = true)
 	}
 	if !webview_init(&shell.wv, user_data_dir()) do return false
 
 	win.ShowWindow(hwnd, win.SW_SHOWDEFAULT)
 	win.UpdateWindow(hwnd)
 	sync_size()
+	win.SetTimer(hwnd, TIMER_WATCH, POLL_MS, nil)
 
 	msg: win.MSG
 	for win.GetMessageW(&msg, nil, 0, 0) > 0 {
@@ -93,10 +100,13 @@ wnd_proc :: proc "system" (hwnd: win.HWND, msg: win.UINT, wparam: win.WPARAM, lp
 	case win.WM_COMMAND:
 		switch win.LOWORD(win.DWORD(wparam)) {
 		case ID_FILE_OPEN:
-			if path, ok := open_dialog(hwnd); ok do show_file(path)
+			if path, ok := open_dialog(hwnd); ok do show_file(path, new_doc = true)
 		case ID_FILE_EXIT:
 			win.DestroyWindow(hwnd)
 		}
+		return 0
+	case win.WM_TIMER:
+		if wparam == TIMER_WATCH do poll_watch()
 		return 0
 	case win.WM_SIZE:
 		sync_size()
@@ -119,10 +129,27 @@ sync_size :: proc() {
 	webview_resize(&shell.wv, rect.right - rect.left, rect.bottom - rect.top)
 }
 
-// show_file renders `path` into the page. On failure keep the last good page
-// and put the error in the status banner.
 @(private = "file")
-show_file :: proc(path: string) {
+poll_watch :: proc() {
+	if shell.path == "" || !shell.ready do return
+	switch watch_step(&shell.watch, file_sig(shell.path)) {
+	case .Reload:
+		show_file(shell.path)
+	case .Missing:
+		webview_post(&shell.wv, status_message(MSG_MISSING, context.temp_allocator))
+	case .None:
+	}
+}
+
+// show_file renders `path` into the page. On failure keep the last good page
+// and put the error in the status banner. new_doc: user opened this file (reset
+// scroll, restart the watcher). Re-renders of the same file keep the scroll offset.
+@(private = "file")
+show_file :: proc(path: string, new_doc := false) {
+	if new_doc {
+		shell.new_doc = true
+		shell.watch = watch_start(file_sig(path))
+	}
 	shell.path = path
 	if !shell.ready do return // on_page_message("ready") calls us again
 
@@ -140,7 +167,8 @@ show_file :: proc(path: string) {
 		webview_reload(&shell.wv)
 		return
 	}
-	webview_post(&shell.wv, html_message(html, context.temp_allocator))
+	webview_post(&shell.wv, html_message(html, shell.new_doc, context.temp_allocator))
+	shell.new_doc = false
 	webview_post(&shell.wv, status_message("", context.temp_allocator))
 	win.SetWindowTextW(shell.hwnd, win.utf8_to_wstring(fmt.tprintf("%s - %s", filepath.base(path), APP_NAME)))
 }

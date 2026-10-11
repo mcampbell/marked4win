@@ -27,8 +27,11 @@ body {
   font: 16px/1.5 "Segoe UI", system-ui, sans-serif;
 }
 #status {
-  position: sticky;
+  position: fixed; /* overlay: must not shift the content or the scroll offset */
   top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
   padding: 6px 16px;
   background: var(--status-bg);
   border-bottom: 1px solid var(--border);

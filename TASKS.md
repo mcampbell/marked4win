@@ -12,9 +12,9 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 - [x] code-reviewer loop (2 iterations, clean)
 
 ## Slice 2 - Watch and reload (branch `slice-2`)
-- [ ] watcher: tests first, folder watch, filter, debounce, missing/return
-- [ ] shell wiring (C3), scroll-keep (R1)
-- [ ] code-reviewer loop
+- [x] watcher: tests first, folder watch, filter, debounce, missing/return
+- [x] shell wiring (C3), scroll-keep (R1)
+- [x] code-reviewer loop (inline, 1 iteration, clean)
 
 ## Slice 3 - Scroll to change and flash (branch `slice-3`)
 - [ ] Test `data-sourcepos` on table rows, inline-only edits
@@ -35,3 +35,5 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 - protocol.odin: tests written with impl in one step (no observed red).
 - Review fixes: removed free_all in COM callbacks (nested modal dialog use-after-free of temp strings); auxclick (middle-click new window) blocked; CLI path made absolute.
 - Accepted risks: CSP allows https: images and inline styles (remote image / CSS exfil); File > Open dialog and dark theme untested.
+- Slice 2: watcher polls one file every 300 ms (pure state machine) instead of ReadDirectoryChangesW: no thread, debounce by design (YAGNI). Smoke OK: edit keeps scroll, delete shows banner, restore clears.
+- Status banner is position:fixed so it does not shift scroll.

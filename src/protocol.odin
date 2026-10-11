@@ -7,7 +7,8 @@ import "core:strings"
 // Hosts:   https://app.local/ = bundled assets, https://doc.local/ = open file's folder.
 // Scripts: only app.local serves scripts (CSP). Document scripts never run.
 // Page -> host: "ready" | "link:<raw href>"
-// Host -> page: "html:<rendered html>" | "status:<text>" (empty text clears status)
+// Host -> page: "html:<html>" (keep scroll) | "newdoc:<html>" (scroll to top)
+//               | "status:<text>" (empty text clears status)
 
 APP_HOST     :: "app.local"
 DOC_HOST     :: "doc.local"
@@ -41,8 +42,9 @@ parse_page_message :: proc(msg: string) -> (kind: Page_Msg, arg: string) {
 	return .Unknown, ""
 }
 
-html_message :: proc(html: string, allocator := context.allocator) -> string {
-	return strings.concatenate({"html:", html}, allocator)
+// new_doc: a different file was opened (page scrolls to top). Otherwise the page keeps its scroll offset.
+html_message :: proc(html: string, new_doc := false, allocator := context.allocator) -> string {
+	return strings.concatenate({"newdoc:" if new_doc else "html:", html}, allocator)
 }
 
 status_message :: proc(text: string, allocator := context.allocator) -> string {
