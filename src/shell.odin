@@ -57,7 +57,10 @@ shell_run :: proc() -> bool {
 		on_message = on_page_message,
 		on_error   = on_webview_error,
 	}
-	if len(os.args) > 1 do shell.path = os.args[1] // opened once the page is ready
+	if len(os.args) > 1 { // opened once the page is ready
+		// host mapping needs an absolute folder
+		shell.path, _ = filepath.abs(os.args[1])
+	}
 	if !webview_init(&shell.wv, user_data_dir()) do return false
 
 	win.ShowWindow(hwnd, win.SW_SHOWDEFAULT)

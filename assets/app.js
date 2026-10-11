@@ -39,7 +39,8 @@
   });
 
   // Every link click is ours: #anchor scrolls, anything else goes to the host.
-  document.addEventListener('click', (e) => {
+  // auxclick = middle click: its default opens a new window, so stop it too.
+  const onLinkClick = (e) => {
     const a = e.target.closest('a[href]');
     if (!a) return;
     e.preventDefault();
@@ -51,7 +52,9 @@
     } else {
       post('link:' + href);
     }
-  });
+  };
+  document.addEventListener('click', onLinkClick);
+  document.addEventListener('auxclick', onLinkClick);
 
   post('ready');
 })();

@@ -9,7 +9,7 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 - [x] 1b webview: confirm `ICoreWebView2_3` host mapping, check Ctrl+F, COM binding, smoke
 - [x] 1c assets: template, CSS light/dark, CSP, highlight.js, link script (agree C2 contract first)
 - [x] 1d shell: window, menu, open dialog, errors, integrate (owns C1)
-- [ ] code-reviewer loop (max 5)
+- [x] code-reviewer loop (2 iterations, clean)
 
 ## Slice 2 - Watch and reload (branch `slice-2`)
 - [ ] watcher: tests first, folder watch, filter, debounce, missing/return
@@ -33,3 +33,5 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 - File > Open dialog NOT exercised (keystroke automation unsafe on shared desktop). Manual check needed.
 - Dark theme and external-link-to-browser not exercised.
 - protocol.odin: tests written with impl in one step (no observed red).
+- Review fixes: removed free_all in COM callbacks (nested modal dialog use-after-free of temp strings); auxclick (middle-click new window) blocked; CLI path made absolute.
+- Accepted risks: CSP allows https: images and inline styles (remote image / CSS exfil); File > Open dialog and dark theme untested.

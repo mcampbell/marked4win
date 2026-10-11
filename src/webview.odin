@@ -242,7 +242,6 @@ fail :: proc(wv: ^Webview, what: string, hr: win.HRESULT) {
 @(private = "file")
 on_env_completed :: proc "system" (this: ^Handler, hr: win.HRESULT, env: ^Environment) -> win.HRESULT {
 	context = runtime.default_context()
-	defer free_all(context.temp_allocator)
 	wv := this.wv
 	if win.FAILED(hr) || env == nil {
 		fail(wv, "environment", hr)
@@ -258,7 +257,6 @@ on_env_completed :: proc "system" (this: ^Handler, hr: win.HRESULT, env: ^Enviro
 @(private = "file")
 on_ctrl_completed :: proc "system" (this: ^Handler, hr: win.HRESULT, ctrl: ^Controller) -> win.HRESULT {
 	context = runtime.default_context()
-	defer free_all(context.temp_allocator)
 	wv := this.wv
 	if win.FAILED(hr) || ctrl == nil {
 		fail(wv, "controller", hr)
@@ -290,7 +288,6 @@ on_ctrl_completed :: proc "system" (this: ^Handler, hr: win.HRESULT, ctrl: ^Cont
 @(private = "file")
 on_nav_starting :: proc "system" (this: ^Handler, sender: ^View, args: ^NavStart_Args) -> win.HRESULT {
 	context = runtime.default_context()
-	defer free_all(context.temp_allocator)
 	uri_w: win.LPWSTR
 	if win.FAILED(args.vtbl.get_Uri(args, &uri_w)) do return win.S_OK
 	defer win.CoTaskMemFree(uri_w)
@@ -302,7 +299,6 @@ on_nav_starting :: proc "system" (this: ^Handler, sender: ^View, args: ^NavStart
 @(private = "file")
 on_web_message :: proc "system" (this: ^Handler, sender: ^View, args: ^WebMsg_Args) -> win.HRESULT {
 	context = runtime.default_context()
-	defer free_all(context.temp_allocator)
 	msg_w: win.LPWSTR
 	if win.FAILED(args.vtbl.TryGetWebMessageAsString(args, &msg_w)) do return win.S_OK
 	defer win.CoTaskMemFree(msg_w)
