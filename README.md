@@ -27,7 +27,7 @@ The libraries are in the repo, so you do not need CMake for a normal build:
 ### Steps
 
 ```powershell
-odin test src          # run tests first (48 tests)
+odin test src          # run tests first (50 tests)
 .\build.ps1            # build into build\
 ```
 
@@ -70,6 +70,32 @@ The libs must use `/MT`. Odin links the static C runtime. A `/MD` lib fails to l
 4. Run `marked4win.exe`. No installer. No admin rights.
 
 The target needs no Odin, no Visual Studio, and no C++ runtime install.
+
+### Install to Program Files
+
+The app writes only to `%LOCALAPPDATA%\marked4win`, so a read-only install folder works.
+Run this in an **administrator** PowerShell, from the repo folder:
+
+```powershell
+$dest = "$env:ProgramFiles\marked4win"
+New-Item -ItemType Directory -Force $dest | Out-Null
+Copy-Item .\build\* $dest -Recurse -Force
+```
+
+Add a Start menu shortcut (all users):
+
+```powershell
+$lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:ProgramData\Microsoft\Windows\Start Menu\Programs\marked4win.lnk")
+$lnk.TargetPath = "$dest\marked4win.exe"
+$lnk.WorkingDirectory = $dest
+$lnk.Save()
+```
+
+No admin rights? Use a per-user folder. Same commands, with `$dest = "$env:LOCALAPPDATA\Programs\marked4win"` and the shortcut in `$env:APPDATA\Microsoft\Windows\Start Menu\Programs`.
+
+To update, close the app and copy `build\*` again. To remove, delete the install folder, the shortcut, and `%LOCALAPPDATA%\marked4win`.
+
+The `.md` file association is manual: right-click a `.md` file, then Open with > Choose another app > `marked4win.exe`.
 
 WebView2 stores its data in `%LOCALAPPDATA%\marked4win`. Delete the folder to reset.
 
