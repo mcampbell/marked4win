@@ -6,7 +6,8 @@ import "core:strings"
 //
 // Hosts:   https://appassets.example/ = bundled assets, https://docassets.example/ = open file's folder.
 // Scripts: only appassets.example serves scripts (CSP). Document scripts never run.
-// Page -> host: "ready" | "link:<raw href>"
+// Page -> host: "ready" | "link:<raw href>" | "font:<name>"
+// Host -> page also: "font:<name>" (sent on every "ready", a reload resets the page)
 // Host -> page: "html:<html>" (keep scroll) | "newdoc:<html>" (scroll to top)
 //               | "changed:<key>|<key>..." (scroll to first block, flash all; key = data-sourcepos value)
 //               | "status:<text>" (empty text clears status)
@@ -21,6 +22,28 @@ Page_Msg :: enum {
 	Unknown,
 	Ready,
 	Link,
+	Font, // page changed the font with Ctrl+1/2/3; host syncs the menu
+}
+
+Font :: enum {
+	Sans, // default
+	Serif,
+	Mono,
+}
+
+@(private = "file")
+FONT_NAMES := [Font]string{.Sans = "sans", .Serif = "serif", .Mono = "mono"}
+
+font_from_name :: proc(name: string) -> (f: Font, ok: bool) {
+	for n, font in FONT_NAMES {
+		if n == name do return font, true
+	}
+	return .Sans, false
+}
+
+// font_message is the same shape both ways: "font:<sans|serif|mono>".
+font_message :: proc(f: Font, allocator := context.allocator) -> string {
+	return strings.concatenate({"font:", FONT_NAMES[f]}, allocator)
 }
 
 // nav_allowed: top-level navigation may only reach the template page (plus #fragment).
@@ -42,6 +65,7 @@ has_prefix_fold :: proc(s, prefix: string) -> bool {
 parse_page_message :: proc(msg: string) -> (kind: Page_Msg, arg: string) {
 	if msg == "ready" do return .Ready, ""
 	if strings.has_prefix(msg, "link:") do return .Link, msg[len("link:"):]
+	if strings.has_prefix(msg, "font:") do return .Font, msg[len("font:"):]
 	return .Unknown, ""
 }
 

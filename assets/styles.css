@@ -8,7 +8,11 @@
   --link: #0969da;
   --status-bg: #fff8c5;
   --flash: #fff3a0;
+  --font-body: "Segoe UI", system-ui, sans-serif;
 }
+/* View menu / Ctrl+1,2,3 set data-font on <html>. Code blocks keep their own monospace. */
+html[data-font="serif"] { --font-body: Georgia, "Times New Roman", serif; }
+html[data-font="mono"] { --font-body: ui-monospace, "Cascadia Mono", Consolas, monospace; }
 @media (prefers-color-scheme: dark) {
   :root {
     --fg: #f0f6fc;
@@ -26,7 +30,7 @@ body {
   margin: 0;
   color: var(--fg);
   background: var(--bg);
-  font: 16px/1.5 "Segoe UI", system-ui, sans-serif;
+  font: 16px/1.5 var(--font-body);
 }
 #status {
   position: fixed; /* overlay: must not shift the content or the scroll offset */

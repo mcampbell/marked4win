@@ -41,3 +41,10 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 - Flash is a class toggled for 2 s, not a CSS animation (DESIGN.md says no animation).
 - Not yet reviewed with a separate reviewer agent: all three review passes were inline.
 - PERF: .local host names cost ~2 s per navigation (mDNS timeout), twice on open from a new folder (~4.3 s). Renamed to appassets.example / docassets.example: ~0.4 s. Render itself takes 1 ms.
+
+## Feature: fonts (branch feature-fonts)
+- [x] View menu (radio) + Ctrl+1/2/3: sans (default), serif, mono. Protocol 'font:<name>' both ways; host re-sends on every page 'ready'.
+- Ctrl+1/2/3 are handled in the page (WebView2 owns keyboard focus, a Win32 accelerator table would not see them).
+- Fixed: focus did not return to the page after a menu closed, so shortcuts and Ctrl+F stopped working. WM_EXITMENULOOP now refocuses.
+- Not done: font choice is not saved across restarts.
+- Pre-existing, not fixed: Alt+F / Alt+V mnemonics do not open menus while the page has focus (WebView2 swallows Alt keys). Mouse works.

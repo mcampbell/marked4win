@@ -51,6 +51,39 @@ test_parse_page_message :: proc(t: ^testing.T) {
 }
 
 @(test)
+test_font_from_name :: proc(t: ^testing.T) {
+	f, ok := font_from_name("sans")
+	testing.expect(t, ok)
+	testing.expect_value(t, f, Font.Sans)
+	f, ok = font_from_name("serif")
+	testing.expect(t, ok)
+	testing.expect_value(t, f, Font.Serif)
+	f, ok = font_from_name("mono")
+	testing.expect(t, ok)
+	testing.expect_value(t, f, Font.Mono)
+	_, ok = font_from_name("comic")
+	testing.expect(t, !ok)
+	_, ok = font_from_name("")
+	testing.expect(t, !ok)
+}
+
+@(test)
+test_font_message_round_trip :: proc(t: ^testing.T) {
+	for f in Font {
+		m := font_message(f)
+		defer delete(m)
+		kind, arg := parse_page_message(m) // same "font:<name>" shape both ways
+		testing.expect_value(t, kind, Page_Msg.Font)
+		back, ok := font_from_name(arg)
+		testing.expect(t, ok)
+		testing.expect_value(t, back, f)
+	}
+	m := font_message(.Serif)
+	defer delete(m)
+	testing.expect_value(t, m, "font:serif")
+}
+
+@(test)
 test_host_messages :: proc(t: ^testing.T) {
 	h := html_message("<p>x</p>")
 	defer delete(h)

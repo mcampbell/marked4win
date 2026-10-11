@@ -5,6 +5,7 @@ Native Windows Markdown viewer. Written in Odin. Renders with WebView2.
 - Open a `.md` file. See tables, code highlight, raw HTML, light/dark theme.
 - The viewer watches the open file. On a change it re-renders, scrolls to the first changed block, and flashes the changed blocks for 2 s.
 - Built-in find: Ctrl+F.
+- Fonts: View menu or Ctrl+1 sans-serif (default), Ctrl+2 serif, Ctrl+3 monospace. Code blocks stay monospace. The choice resets when you restart the app.
 
 ## Build
 

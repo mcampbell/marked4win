@@ -9,6 +9,16 @@ import win "core:sys/windows"
 
 ID_FILE_OPEN :: 1001
 ID_FILE_EXIT :: 1002
+ID_VIEW_SANS :: 1101 // + Font ordinal: sans, serif, mono
+ID_VIEW_MONO :: ID_VIEW_SANS + 2
+#assert(ID_VIEW_MONO - ID_VIEW_SANS == int(max(Font)))
+
+foreign import user32 "system:User32.lib"
+
+@(default_calling_convention = "system")
+foreign user32 {
+	CheckMenuRadioItem :: proc(menu: win.HMENU, first, last, check, flags: win.UINT) -> win.BOOL ---
+}
 
 APP_NAME :: "marked4win"
 
@@ -22,6 +32,8 @@ Shell :: struct {
 	mapped_dir: string, // folder currently served as docassets.example
 	src:        string, // text the page shows, for the line diff
 	watch:      Watch,
+	font:       Font,
+	view_menu:  win.HMENU,
 	new_doc:    bool, // next post is a different file: page scrolls to top
 }
 
@@ -56,6 +68,7 @@ shell_run :: proc() -> bool {
 		return false
 	}
 	shell.hwnd = hwnd
+	set_font(.Sans, post = false)
 
 	shell.wv = Webview {
 		hwnd       = hwnd,
@@ -89,8 +102,15 @@ make_menu :: proc() -> win.HMENU {
 	file := win.CreatePopupMenu()
 	win.AppendMenuW(file, win.MF_STRING, ID_FILE_OPEN, win.L("&Open..."))
 	win.AppendMenuW(file, win.MF_STRING, ID_FILE_EXIT, win.L("E&xit"))
+	// Ctrl+1/2/3 are handled by the page (it owns keyboard focus); the labels only show them.
+	shell.view_menu = win.CreatePopupMenu()
+	labels := [Font]win.LPCWSTR{.Sans = win.L("Sans-serif\tCtrl+1"), .Serif = win.L("Serif\tCtrl+2"), .Mono = win.L("Monospace\tCtrl+3")}
+	for f in Font {
+		win.AppendMenuW(shell.view_menu, win.MF_STRING, win.UINT_PTR(ID_VIEW_SANS + int(f)), labels[f])
+	}
 	bar := win.CreateMenu()
 	win.AppendMenuW(bar, win.MF_POPUP, win.UINT_PTR(uintptr(file)), win.L("&File"))
+	win.AppendMenuW(bar, win.MF_POPUP, win.UINT_PTR(uintptr(shell.view_menu)), win.L("&View"))
 	return bar
 }
 
@@ -104,6 +124,8 @@ wnd_proc :: proc "system" (hwnd: win.HWND, msg: win.UINT, wparam: win.WPARAM, lp
 			if path, ok := open_dialog(hwnd); ok do show_file(path, new_doc = true)
 		case ID_FILE_EXIT:
 			win.DestroyWindow(hwnd)
+		case ID_VIEW_SANS ..= ID_VIEW_MONO:
+			set_font(Font(int(win.LOWORD(win.DWORD(wparam))) - ID_VIEW_SANS), post = true)
 		}
 		return 0
 	case win.WM_TIMER:
@@ -112,7 +134,8 @@ wnd_proc :: proc "system" (hwnd: win.HWND, msg: win.UINT, wparam: win.WPARAM, lp
 	case win.WM_SIZE:
 		sync_size()
 		return 0
-	case win.WM_SETFOCUS:
+	case win.WM_SETFOCUS, win.WM_EXITMENULOOP:
+		// Without this, Ctrl+1/2/3 and Ctrl+F stop working after a menu closes.
 		webview_focus(&shell.wv)
 		return 0
 	case win.WM_DESTROY:
@@ -128,6 +151,16 @@ sync_size :: proc() {
 	rect: win.RECT
 	win.GetClientRect(shell.hwnd, &rect)
 	webview_resize(&shell.wv, rect.right - rect.left, rect.bottom - rect.top)
+}
+
+// set_font records the choice and moves the radio mark. post: tell the page (menu
+// clicks do; a page-side Ctrl+1/2/3 already changed the page).
+@(private = "file")
+set_font :: proc(f: Font, post: bool) {
+	shell.font = f
+	id := win.UINT(ID_VIEW_SANS + int(f))
+	CheckMenuRadioItem(shell.view_menu, ID_VIEW_SANS, ID_VIEW_MONO, id, win.MF_BYCOMMAND)
+	if post do webview_post(&shell.wv, font_message(f, context.temp_allocator))
 }
 
 @(private = "file")
@@ -189,8 +222,11 @@ flash_changes :: proc(src, html: string) {
 on_page_message :: proc(wv: ^Webview, msg: string) {
 	kind, arg := parse_page_message(msg)
 	switch kind {
+	case .Font:
+		if f, ok := font_from_name(arg); ok do set_font(f, post = false)
 	case .Ready:
 		shell.ready = true
+		webview_post(&shell.wv, font_message(shell.font, context.temp_allocator)) // a reload resets the page
 		if shell.path != "" do show_file(shell.path)
 	case .Link:
 		if link_is_external(arg) {

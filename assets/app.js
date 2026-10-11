@@ -1,5 +1,6 @@
 // Page side of the host contract (see src/protocol.odin).
-// Host -> page: "html:" | "newdoc:" | "changed:<keys>" | "status:<text>". Page -> host: "ready" | "link:<href>".
+// Host -> page: "html:" | "newdoc:" | "changed:<keys>" | "status:<text>" | "font:<name>".
+// Page -> host: "ready" | "link:<href>" | "font:<name>".
 (() => {
   const content = document.getElementById('content');
   const status = document.getElementById('status');
@@ -50,11 +51,27 @@
     status.hidden = text === '';
   };
 
+  const FONTS = ['sans', 'serif', 'mono']; // Ctrl+1, Ctrl+2, Ctrl+3
+  const setFont = (name) => {
+    if (FONTS.includes(name)) document.documentElement.dataset.font = name;
+  };
+
+  // The page owns keyboard focus, so it handles the shortcuts and tells the host (menu mark).
+  document.addEventListener('keydown', (e) => {
+    if (!e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+    const name = FONTS[Number(e.key) - 1];
+    if (!name) return;
+    e.preventDefault();
+    setFont(name);
+    post('font:' + name);
+  });
+
   window.chrome.webview.addEventListener('message', (e) => {
     const msg = e.data;
     if (typeof msg !== 'string') return;
     if (msg.startsWith('html:')) setHtml(msg.slice('html:'.length), true);
     else if (msg.startsWith('newdoc:')) setHtml(msg.slice('newdoc:'.length), false);
+    else if (msg.startsWith('font:')) setFont(msg.slice('font:'.length));
     else if (msg.startsWith('changed:')) flashChanged(msg.slice('changed:'.length).split('|'));
     else if (msg.startsWith('status:')) setStatus(msg.slice('status:'.length));
   });
