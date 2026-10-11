@@ -41,22 +41,19 @@ foreign cmark {
 @(private = "file")
 EXTENSIONS :: [?]cstring{"table", "strikethrough", "autolink", "tasklist"}
 
-// cmark's extension registry is not thread-safe: register once.
+// cmark-gfm keeps global state (extension registry, inline special-char table
+// changed on parser attach/free). Parsing is not thread-safe: one render at a time.
 @(private = "file")
-registered: sync.Once
-
-@(private = "file")
-register_extensions :: proc() {
-	gfm_core_extensions_ensure_registered()
-}
+render_lock: sync.Mutex
 
 // render converts Markdown to HTML. Raw HTML passes through (CSP guards the page).
 // Every block carries data-sourcepos. Returns ok=false on invalid UTF-8. Caller frees html.
 render :: proc(src: string, allocator := context.allocator) -> (html: string, ok: bool) {
 	if !utf8.valid_string(src) do return "", false
 
-	sync.once_do(&registered, register_extensions)
-	parser :=parser_new(CMARK_OPT_SOURCEPOS | CMARK_OPT_UNSAFE)
+	sync.guard(&render_lock)
+	gfm_core_extensions_ensure_registered()
+	parser := parser_new(CMARK_OPT_SOURCEPOS | CMARK_OPT_UNSAFE)
 	defer parser_free(parser)
 	for name in EXTENSIONS {
 		if ext := find_syntax_extension(name); ext != nil {

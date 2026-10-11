@@ -41,7 +41,9 @@ Controller_VT :: struct {
 	put_IsVisible:   proc "system" (this: ^Controller, visible: win.BOOL) -> win.HRESULT, // 4
 	_:               [1]rawptr, // 5 get_Bounds
 	put_Bounds:      proc "system" (this: ^Controller, bounds: win.RECT) -> win.HRESULT, // 6
-	_:               [16]rawptr, // 7..22
+	_:               [5]rawptr, // 7..11
+	MoveFocus:       proc "system" (this: ^Controller, reason: i32) -> win.HRESULT, // 12
+	_:               [10]rawptr, // 13..22
 	_:               [1]rawptr, // 23 NotifyParentWindowPositionChanged
 	Close:           proc "system" (this: ^Controller) -> win.HRESULT, // 24
 	get_CoreWebView2: proc "system" (this: ^Controller, out: ^^View) -> win.HRESULT, // 25
@@ -67,6 +69,7 @@ View3_VT :: struct {
 	_: [68]rawptr, // 3..70
 	SetVirtualHostNameToFolderMapping: proc "system" (this: ^View3, host, folder: win.LPCWSTR, access: i32) -> win.HRESULT, // 71
 }
+HOST_ACCESS_ALLOW     :: 1 // doc.local: page on app.local loads its images (cross-origin)
 HOST_ACCESS_DENY_CORS :: 2
 
 NavStart_Args :: struct { vtbl: ^NavStart_Args_VT }
@@ -196,7 +199,19 @@ webview_post :: proc(wv: ^Webview, msg: string) {
 
 // webview_map_doc_folder serves `folder` at https://doc.local/.
 webview_map_doc_folder :: proc(wv: ^Webview, folder: string) -> bool {
-	return map_host(wv, DOC_HOST, folder)
+	return map_host(wv, DOC_HOST, folder, HOST_ACCESS_ALLOW)
+}
+
+// webview_reload navigates to the template again. Host mappings only apply to new
+// navigations, so reload after webview_map_doc_folder. The page sends "ready" again.
+webview_reload :: proc(wv: ^Webview) {
+	if wv.view == nil do return
+	wv.view.vtbl.Navigate(wv.view, win.utf8_to_wstring(TEMPLATE_URL, context.temp_allocator))
+}
+
+// webview_focus gives keyboard focus to the page (needed for built-in Ctrl+F).
+webview_focus :: proc(wv: ^Webview) {
+	if wv.controller != nil do wv.controller.vtbl.MoveFocus(wv.controller, 0) // PROGRAMMATIC
 }
 
 webview_close :: proc(wv: ^Webview) {
@@ -204,13 +219,13 @@ webview_close :: proc(wv: ^Webview) {
 }
 
 @(private = "file")
-map_host :: proc(wv: ^Webview, host, folder: string) -> bool {
+map_host :: proc(wv: ^Webview, host, folder: string, access: i32) -> bool {
 	if wv.view3 == nil do return false
 	hr := wv.view3.vtbl.SetVirtualHostNameToFolderMapping(
 		wv.view3,
 		win.utf8_to_wstring(host, context.temp_allocator),
 		win.utf8_to_wstring(folder, context.temp_allocator),
-		HOST_ACCESS_DENY_CORS,
+		access,
 	)
 	if win.FAILED(hr) {
 		fail(wv, fmt.tprintf("map %s", host), hr)
@@ -261,13 +276,14 @@ on_ctrl_completed :: proc "system" (this: ^Handler, hr: win.HRESULT, ctrl: ^Cont
 		fail(wv, "ICoreWebView2_3 (host mapping)", h)
 		return win.S_OK
 	}
-	if !map_host(wv, APP_HOST, wv.app_dir) do return win.S_OK
+	if !map_host(wv, APP_HOST, wv.app_dir, HOST_ACCESS_DENY_CORS) do return win.S_OK
 
 	wv.view.vtbl.add_NavigationStarting(wv.view, &wv.h_nav, &wv.tokens[0])
 	wv.view.vtbl.add_WebMessageReceived(wv.view, &wv.h_msg, &wv.tokens[1])
 	ctrl.vtbl.put_Bounds(ctrl, wv.bounds)
 	ctrl.vtbl.put_IsVisible(ctrl, true)
 	wv.view.vtbl.Navigate(wv.view, win.utf8_to_wstring(TEMPLATE_URL, context.temp_allocator))
+	webview_focus(wv)
 	return win.S_OK
 }
 
