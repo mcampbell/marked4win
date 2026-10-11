@@ -74,7 +74,17 @@ The target needs no Odin, no Visual Studio, and no C++ runtime install.
 ### Install to Program Files
 
 The app writes only to `%LOCALAPPDATA%\marked4win`, so a read-only install folder works.
-Run this in an **administrator** PowerShell, from the repo folder:
+
+With the batch file (no PowerShell needed). Build first. Then open an **administrator** command prompt and run:
+
+```bat
+bin\deploy-to-program-files.bat
+bin\deploy-to-program-files.bat "%LOCALAPPDATA%\Programs\marked4win"
+```
+
+The first line installs to `%ProgramFiles%\marked4win`. The second line installs to a folder you choose. A chosen folder needs no admin rights. The script replaces `assets\` and stops with an error if the exe is missing or a file is in use. It makes no shortcut.
+
+Or by hand. Run this in an **administrator** PowerShell, from the repo folder:
 
 ```powershell
 $dest = "$env:ProgramFiles\marked4win"
