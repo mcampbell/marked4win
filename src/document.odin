@@ -21,7 +21,7 @@ load_document :: proc(path: string, allocator := context.allocator) -> (src, htm
 	return src, html, ""
 }
 
-// document_dir is the folder served as https://doc.local/.
+// document_dir is the folder served as https://docassets.example/.
 document_dir :: proc(path: string) -> string {
 	dir := filepath.dir(path)
 	return dir if dir != "" else "."

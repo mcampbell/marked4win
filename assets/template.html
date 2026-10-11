@@ -2,18 +2,18 @@
 <html>
 <head>
 <meta charset="utf-8">
-<!-- CSP: scripts only from app.local. Document scripts and inline handlers never run. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://app.local; style-src https://app.local 'unsafe-inline'; img-src https://doc.local https://app.local https: data:; font-src data:; base-uri https://doc.local/; form-action 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'">
+<!-- CSP: scripts only from appassets.example. Document scripts and inline handlers never run. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://appassets.example; style-src https://appassets.example 'unsafe-inline'; img-src https://docassets.example https://appassets.example https: data:; font-src data:; base-uri https://docassets.example/; form-action 'none'; object-src 'none'; frame-src 'none'; connect-src 'none'">
 <!-- Relative links and images in the document resolve against the open file's folder. -->
-<base href="https://doc.local/">
-<link rel="stylesheet" href="https://app.local/styles.css">
-<link rel="stylesheet" href="https://app.local/hljs-light.css" media="(prefers-color-scheme: light)">
-<link rel="stylesheet" href="https://app.local/hljs-dark.css" media="(prefers-color-scheme: dark)">
+<base href="https://docassets.example/">
+<link rel="stylesheet" href="https://appassets.example/styles.css">
+<link rel="stylesheet" href="https://appassets.example/hljs-light.css" media="(prefers-color-scheme: light)">
+<link rel="stylesheet" href="https://appassets.example/hljs-dark.css" media="(prefers-color-scheme: dark)">
 </head>
 <body>
 <div id="status" hidden></div>
 <article id="content" class="markdown-body"></article>
-<script src="https://app.local/highlight.min.js"></script>
-<script src="https://app.local/app.js"></script>
+<script src="https://appassets.example/highlight.min.js"></script>
+<script src="https://appassets.example/app.js"></script>
 </body>
 </html>

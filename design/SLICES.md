@@ -8,8 +8,8 @@ Costs: see `../estimates.md`.
 |---|---|
 | Parser | cmark-gfm, vendored, static `.lib`, Odin `foreign import`. Options: SOURCEPOS + UNSAFE |
 | Render | WebView2, hand-written minimal COM binding |
-| Hosts | `app.local` = bundled assets. `doc.local` = open file's folder |
-| Script guard | CSP: `script-src` only from `app.local`. Document scripts never run |
+| Hosts | `appassets.example` = bundled assets. `docassets.example` = open file's folder |
+| Script guard | CSP: `script-src` only from `appassets.example`. Document scripts never run |
 | Raw HTML | Allowed (guarded by CSP) |
 | Syntax highlight | highlight.js, bundled, runs in page |
 | Theme | Follow Windows light/dark (CSS only) |

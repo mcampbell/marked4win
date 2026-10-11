@@ -40,3 +40,4 @@ Odin: `C:\Users\micha\dev\Odin\odin.exe`. CMake: `C:\Program Files\Microsoft Vis
 - Slice 3: sourcepos on tr/td/th, paragraphs (inline edits), lists end at 'line:0'. Block key = the data-sourcepos string (no ordinals). Tie rule: smallest block, outer wins, so a cell edit flashes the row. Deleted-only text points at the next line. Smoke OK: table edit scrolls+flashes tr, flash clears at 2 s.
 - Flash is a class toggled for 2 s, not a CSS animation (DESIGN.md says no animation).
 - Not yet reviewed with a separate reviewer agent: all three review passes were inline.
+- PERF: .local host names cost ~2 s per navigation (mDNS timeout), twice on open from a new folder (~4.3 s). Renamed to appassets.example / docassets.example: ~0.4 s. Render itself takes 1 ms.

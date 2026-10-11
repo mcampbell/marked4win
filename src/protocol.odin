@@ -4,15 +4,17 @@ import "core:strings"
 
 // Contract between host (Odin) and page (assets/template.html + app.js).
 //
-// Hosts:   https://app.local/ = bundled assets, https://doc.local/ = open file's folder.
-// Scripts: only app.local serves scripts (CSP). Document scripts never run.
+// Hosts:   https://appassets.example/ = bundled assets, https://docassets.example/ = open file's folder.
+// Scripts: only appassets.example serves scripts (CSP). Document scripts never run.
 // Page -> host: "ready" | "link:<raw href>"
 // Host -> page: "html:<html>" (keep scroll) | "newdoc:<html>" (scroll to top)
 //               | "changed:<key>|<key>..." (scroll to first block, flash all; key = data-sourcepos value)
 //               | "status:<text>" (empty text clears status)
 
-APP_HOST     :: "app.local"
-DOC_HOST     :: "doc.local"
+// Never use a ".local" host: Chromium resolves it with mDNS and waits ~2 s on every navigation.
+// ".example" is reserved (RFC 2606) and skips the lookup.
+APP_HOST     :: "appassets.example"
+DOC_HOST     :: "docassets.example"
 TEMPLATE_URL :: "https://" + APP_HOST + "/template.html"
 
 Page_Msg :: enum {

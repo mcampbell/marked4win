@@ -100,14 +100,14 @@ src/        Odin source (package main)
   linediff      LCS line diff
   blockmap      changed lines -> blocks
   shell, main   window, menu, wiring
-assets/     page files served to WebView2 as https://app.local/
+assets/     page files served to WebView2 as https://appassets.example/
 vendor/     cmark-gfm and WebView2 loader
 design/     DESIGN.md, SLICES.md
 ```
 
 ## Security notes
 
-- The page allows scripts only from `app.local` (CSP). Scripts inside a document never run.
+- The page allows scripts only from `appassets.example` (CSP). Scripts inside a document never run.
 - Raw HTML in a document renders. Remote `https:` images load.
 - Only `http(s)` links open, in the default browser.
 

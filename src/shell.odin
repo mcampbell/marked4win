@@ -19,7 +19,7 @@ Shell :: struct {
 	ready: bool,   // page sent "ready"; safe to post content
 	path:  string, // open document ("" = none)
 
-	mapped_dir: string, // folder currently served as doc.local
+	mapped_dir: string, // folder currently served as docassets.example
 	src:        string, // text the page shows, for the line diff
 	watch:      Watch,
 	new_doc:    bool, // next post is a different file: page scrolls to top

@@ -69,7 +69,7 @@ View3_VT :: struct {
 	_: [68]rawptr, // 3..70
 	SetVirtualHostNameToFolderMapping: proc "system" (this: ^View3, host, folder: win.LPCWSTR, access: i32) -> win.HRESULT, // 71
 }
-HOST_ACCESS_ALLOW     :: 1 // doc.local: page on app.local loads its images (cross-origin)
+HOST_ACCESS_ALLOW     :: 1 // docassets.example: page on appassets.example loads its images (cross-origin)
 HOST_ACCESS_DENY_CORS :: 2
 
 NavStart_Args :: struct { vtbl: ^NavStart_Args_VT }
@@ -197,7 +197,7 @@ webview_post :: proc(wv: ^Webview, msg: string) {
 	wv.view.vtbl.PostWebMessageAsString(wv.view, win.utf8_to_wstring(msg, context.temp_allocator))
 }
 
-// webview_map_doc_folder serves `folder` at https://doc.local/.
+// webview_map_doc_folder serves `folder` at https://docassets.example/.
 webview_map_doc_folder :: proc(wv: ^Webview, folder: string) -> bool {
 	return map_host(wv, DOC_HOST, folder, HOST_ACCESS_ALLOW)
 }

@@ -4,19 +4,19 @@ import "core:testing"
 
 @(test)
 test_nav_allowed_template :: proc(t: ^testing.T) {
-	testing.expect(t, nav_allowed("https://app.local/template.html"))
-	testing.expect(t, nav_allowed("https://app.local/template.html#intro"))
+	testing.expect(t, nav_allowed("https://appassets.example/template.html"))
+	testing.expect(t, nav_allowed("https://appassets.example/template.html#intro"))
 }
 
 @(test)
 test_nav_blocks_everything_else :: proc(t: ^testing.T) {
 	testing.expect(t, !nav_allowed("https://example.com/"))
-	testing.expect(t, !nav_allowed("https://doc.local/other.md"))
-	testing.expect(t, !nav_allowed("https://app.local/other.html"))
-	testing.expect(t, !nav_allowed("https://app.local.evil.com/template.html"))
-	testing.expect(t, !nav_allowed("https://app.local@evil.com/template.html"))
-	testing.expect(t, !nav_allowed("https://evil.com/https://app.local/template.html"))
-	testing.expect(t, !nav_allowed("http://app.local/template.html"))
+	testing.expect(t, !nav_allowed("https://docassets.example/other.md"))
+	testing.expect(t, !nav_allowed("https://appassets.example/other.html"))
+	testing.expect(t, !nav_allowed("https://appassets.example.evil.com/template.html"))
+	testing.expect(t, !nav_allowed("https://appassets.example@evil.com/template.html"))
+	testing.expect(t, !nav_allowed("https://evil.com/https://appassets.example/template.html"))
+	testing.expect(t, !nav_allowed("http://appassets.example/template.html"))
 	testing.expect(t, !nav_allowed("file:///c:/x.html"))
 	testing.expect(t, !nav_allowed(""))
 }
